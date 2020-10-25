@@ -154,7 +154,7 @@ attr_reader :player_code
     puts "4 = white, 5 = black, 6 = turquiose"
     puts "Enter six numbers to create your code!"
     inpt = gets.chomp.split('').filter {|value| /[1-6]/.match?(value)}
-
+   
     for i in 1..4 do
       @player_code[i] = COLORS[inpt[i - 1].to_i]
     end
@@ -165,7 +165,7 @@ end
 computer = ComputerCodeMaker.new
 player = Player.new
 
-puts "Press 1 to be the code guesser or two to be the code maker"
+puts "Press 1 to be the code guesser or 2 to be the code maker"
 inpt = gets.chomp
 if (inpt.to_s == "1")
   computer.create_code

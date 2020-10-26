@@ -1,14 +1,20 @@
+require 'yaml'
 
 playing_game = true
+save_file = nil
+
 
 class HangmanGame
 
-    def initialize
-        @guessed_letters = "" 
+    attr_accessor :end_game
+
+    def initialize (game_object = nil)
         @words = File.readlines "words.txt"
+        @guessed_letters = "" 
         @word_to_guess = self.get_new_word(@words) 
         @num_of_guesses = 6
         @end_game = false
+      
     end
 
     def get_new_word(words_string)     
@@ -32,7 +38,7 @@ class HangmanGame
             built_word += " _ "
            end
         end
-        puts @word_to_guess
+
         puts built_word
     end
 
@@ -63,14 +69,43 @@ class HangmanGame
         puts "Congragulations! You won."
         @end_game = true
     end
-end
+
+    def ask_to_save
+      if (@end_game == false)
+        puts "Save game? (y/n)"
+        inpt = gets.chomp.downcase
+
+        if (inpt == 'y')
+            to_yaml(self)
+        end
+      end
+    end
 
 end
+end
+
+def to_yaml(object_to_save)
+    yaml_string = YAML.dump(object_to_save)
+    save_file = File.open("save.txt", 'w')
+     save_file.puts (yaml_string)
+     save_file.close
+   end
+   
+   def from_yaml()
+       save_file = File.open("save.txt", 'r')
+     YAML.load(save_file.read)
+   end
 
 while playing_game == true
-new_game = HangmanGame.new
+    if (File.exists?('save.txt'))
+        new_game = from_yaml
+    else
+        new_game = HangmanGame.new
+    end
+
     while new_game.end_game == false
         new_game.ask_player
+        new_game.ask_to_save
     end
     puts "Play Hangman? (y/n)"
     inpt = gets.chomp.downcase

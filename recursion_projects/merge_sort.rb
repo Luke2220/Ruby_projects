@@ -1,25 +1,25 @@
 def merge_sort(array)
     if array.length < 2
-        puts "base case"
         return array 
     end
-    left = array[0..((array.length-1)/2).round - 1]   
-    right = array[((array.length-1)/2).round..array.length-1]
 
-    x = merge_sort(left)
-    y = merge_sort(right)
+    x = merge_sort(array[0..((array.length-1)/2.to_f).round - 1] ) 
+    y = merge_sort(array[((array.length-1)/2.to_f).round..array.length])
 
     result = []
     x.each do |x_val|
         y.each do |y_val|
-            if x_val > y_val
-                result << y_val
-            end
+            if x_val < y_val
+                result << x_val if result.include?(x_val) == false
+            else
+                result << y_val if result.include?(y_val) == false
+            end        
+           end
         end
     end
-    puts result
+    result += (x + y)
     result
 
 end
 
-merge_sort([8,7,6,5,4,3,2,1])
+p merge_sort([8,7,6,5,4,3,2,1])

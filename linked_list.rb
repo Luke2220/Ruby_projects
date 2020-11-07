@@ -120,8 +120,8 @@ def insert_at(value,index)
 end
 
 def remove_at(index)
-  
-    index = size() if index > size()
+    size = size() 
+    index = size if index > size
 
     current_node = at(index)
     previous_node = at(index - 1)

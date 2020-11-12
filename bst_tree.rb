@@ -14,8 +14,6 @@ end
     root = Node.new
     root.value = array[mid]
 
-    puts root.value
-
     root.left_child = build_tree(array,start,mid-1)
     root.right_child = build_tree(array,mid+1,last)
 
@@ -87,13 +85,18 @@ end
 
     end
 
-    def level_order(root,queue)
-        arry << root
+    def level_order(root=@root,queue=Array.new,ordered_arry=Array.new)
+
+         if root == nil
+            return nil
+         end
+
+        ordered_arry << root
 
         queue << @root.left_child
         queue << @root.right_child
-
-        level_order(queue.pop)
+        
+        level_order(queue.shift,queue,ordered_arry)
 
         return arry
     end
@@ -130,8 +133,9 @@ end
 
     def height(node,num=0)
         return nil if node == nil
-
-        val = num if num > val
+        
+        
+        val = num if val == nil || num > val
 
         height(node.left_child, num+1)
         height(node.right_child, num+1)
@@ -155,11 +159,23 @@ end
         return val  
     end
 
+    def balanced?
 
+        left = height(@root.left_child)
+        right = height(@root.right_child)
+
+        if ((left - right).magnitude() > 1)
+           return true 
+        end
+        return false
+    end
+
+    def rebalance
+        level_arry = level_order(@root)
+        @root = build_tree(level_arry,0,level_arry.length-1)
+    end
     
 end
-
-
 
 
 class Node
@@ -174,5 +190,20 @@ attr_accessor :value
     end
 end
 
-new_tree = Tree.new([1,2,3,4,5,6,7])
-new_tree.insert(8,new_tree.root)
+def check_tree
+    random_arry = Array.new(15) {rand(1..100)}
+    new_tree = Tree.new([5,3,1,4])
+
+    puts new_tree.balanced?
+    puts
+    p new_tree.level_order
+    puts
+    p new_tree.preorder(@root)
+    puts
+    p new_tree.postorder(@root)
+    puts
+    p new_tree.inorder(@root)   
+    
+end
+
+check_tree()

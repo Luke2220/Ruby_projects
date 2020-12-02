@@ -110,34 +110,34 @@ end
 
 class PlayGame
  
-  attr_reader :currentboard
+  attr_reader :current_board, :players_turn
 
   def initialize()
     @players_turn = "1"
-    @currentboard = TicTacToeBoard.new(3)
+    @current_board = TicTacToeBoard.new(3)
     @symbol = X
-    @currentboard.puts_board
+    @current_board.puts_board
     puts "Player's 1 turn."
   end
 
   def change_turn
 
-    victory = currentboard.check_victory(@symbol)
+    victory = current_board.check_victory(@symbol)
 
     if (victory)
-      @currentboard.puts_board
+      @current_board.puts_board
       puts "Player #{@players_turn} wins!"
       return "Victory"
     end
 
     if (@players_turn == "1")
       puts "Player's 2 turn." 
-      @currentboard.puts_board  
+      @current_board.puts_board  
       @players_turn = "2"
       @symbol = O
     else
       puts "Player's 1 turn." 
-      @currentboard.puts_board 
+      @current_board.puts_board 
       @players_turn = "1"
       @symbol = X
     end
@@ -147,16 +147,20 @@ class PlayGame
     puts "Enter X,Y coordinates"
     input = gets.chomp
     cor = input.split('').filter {|value| /[1-9]/.match?(value)} 
-    @currentboard.set_slot(cor[0],cor[1], @symbol)
+    @current_board.set_slot(cor[0],cor[1], @symbol)
   end
 
+ def play_game()
+  while current_board.check_victory(@symbol) == false
+    get_input()
+    change_turn()
+  end
+ end
+
+
 end
 
-new_game = PlayGame.new()
-while victory == false 
-  new_game.get_input()
-  new_game.change_turn
-end
+
 
 
 

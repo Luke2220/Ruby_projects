@@ -22,7 +22,6 @@ class Board
         end
         @slots[counter-1][x_pos.to_i].state = color
          puts_board()
-        connect_slots()
         return @slots[counter-1][x_pos.to_i]
     end
 
@@ -32,13 +31,6 @@ class Board
          puts ""
         end
        end
-
-       def connect_slots
-        @slots.each_with_index do |row,x_index| 
-         row.each_with_index {|column,y_index| column.assign_neighbors(x_index-1,y_index-1,@slots)}      
-        end
-       end
-
 end
 
 class BoardSlot
@@ -46,26 +38,6 @@ class BoardSlot
     def initialize
         @state = 'O'
         @neighbors = Hash.new
-    end
-
-    def assign_neighbors(x,y,board_array)
-  
-        @neighbors[:right] = board_array[x+1][y] if (board_array[x+1][y] != nil)
-           
-        @neighbors[:upperright] = board_array[x+1][y+1] if (board_array[x+1][y+1] != nil)
-      
-        @neighbors[:up] = board_array[x][y-1] if (board_array[x][y+1] != nil)
-       
-        @neighbors[:upperleft] = board_array[x-1][y+1] if (board_array[x-1][y+1] != nil)
-        
-        @neighbors[:left] = board_array[x-1][y] if (board_array[x-1][y] != nil)
-            
-        @neighbors[:lowerleft] = board_array[x-1][y-1] if (board_array[x-1][y-1] != nil)
-            
-        @neighbors[:down] = board_array[x][y+1] if (board_array[x][y-1] != nil)
-            
-        @neighbors[:lowerright] = board_array[x+1][y-1] if (board_array[x+1][y-1] != nil)    
-        
     end
 
     def is_state_empty?()
@@ -76,15 +48,40 @@ class BoardSlot
 end
 
 class PlayGame
-    attr_reader :our_board
+    attr_reader :our_board, :is_victory
     def initialize()
        @our_board = Board.new()
        @current_player = 1
-       @player_color = 'blue'
+       @player_color = 'X'
        @is_victory = false
     end
 
+    def start_game
+        playing = true
+    while playing == true
+        while @is_victory == false
+            play_turn()
+        end
+
+        if @is_victory 
+            puts 'play again? Y/N'
+            inpt = gets.chomp
+        end
+
+        if inpt == 'y'
+            @our_board = Board.new()
+            @current_player = 1
+            @player_color = 'X'
+            @is_victory = false
+        else
+            playing = false
+        end
+    end
+end
+
+
     def play_turn()
+       
         puts "Choose from columns 1-7 to play into"
         input = gets.chomp
 
@@ -93,7 +90,7 @@ class PlayGame
     end
 
     def change_player()
-        check_slots_victory()
+        check_victory(@player_color)
         if @is_victory == true
             puts "winner"
             return true 
@@ -101,186 +98,160 @@ class PlayGame
 
         if @current_player == 1
             @current_player = 2
-            @player_color = 'red'
+            @player_color = 'X'
         elsif @current_player == 2
             @current_player = 1
-            @player_color = 'blue'
+            @player_color = 'Y'
         end
     end
 
-    def check_slots_victory()
-        @our_board.slots.each do |row| 
-            row.each do |slot|  
-                check_victory_rec(slot)
+    def check_victory(symbol)
+      
+        counter = -2
+
+        while counter < @our_board.slots.length do 
+          streak = 0
+          counter += 1
+          @our_board.slots.each do |value|
+    
+            if (value[counter].state == symbol)
+              streak +=1
+            else
+                streak = 0
+            end
+            if (streak == 4)
+              @is_victory = true
+              return true
+            end
+          end
+    
+        end
+ 
+        @our_board.slots.each do |value|
+          streak = 0
+          value.each do | value|
+    
+            if (value.state == symbol)
+              streak +=1
+            else
+                streak = 0
+            end
+           
+            if (streak == 4)
+                @is_victory = true
+                return true
             end
         end
-    end
+      end
+    
+check_diagonal(symbol)
+        return false
+     end
 
+     def check_diagonal(symbol)
 
-    def check_victory_rec(slot, counter=0,direction='')      
-                if counter >= 4
-                    @is_victory = true
-                    return nil
-                end
-                puts slot
-                puts slot.neighbors[:up]
-                if slot != nil && slot.state != 'O'
-                    if direction == 'up' || direction == '' && slot.neighbors[:up] != nil && slot.neighbors[:up].state == slot.state
-                        puts slot.neighbors[:up]
-                        check_victory_rec(slot.neighbors[:up],counter+1,'up')
-                    end
+      @our_board.slots.each_with_index do |y, y_index|
 
-                    if direction == 'upperright' || direction == '' && slot.neighbors[:upperright] != nil && slot.neighbors[:upperright].state == slot.state
-                        puts slot.neighbors[:upperright]
-                        check_victory_rec(slot.neighbors[:upperright],counter+1,'upperright')
-                    end
+        y.each_with_index do |x, x_index|
+          if x.state == symbol
+            streak = 0
+            x_pos = x_index
+            y_pos = y_index
+           
+            while @our_board.slots[y_pos][x_pos].state == symbol
+              if (x_pos < 6 && x_pos > 0)
+                x_pos += 1
+              else
+                break
+              end
+              if (y_pos < 5 && y_pos > 0)
+                y_pos += 1
+              else
+                break
+              end
 
-                    if direction == 'upperleft' || direction == '' && slot.neighbors[:upperleft] != nil && slot.neighbors[:upperleft].state == slot.state
-                        puts slot.neighbors[:upperleft]
-                        check_victory_rec(slot.neighbors[:upperleft],counter+1,'upperleft')
-                    end
+              streak += 1
+              if streak >= 4
+                @is_victory = true
+                return true
+              end
+            end
+            x_pos = x_index
+            y_pos = y_index
 
-                    if direction == 'left' || direction == '' && slot.neighbors[:left] != nil && slot.neighbors[:left].state == slot.state
-                        puts slot.neighbors[:left]
-                        check_victory_rec(slot.neighbors[:left],counter+1, 'left')
-                    end
+            while @our_board.slots[y_pos][x_pos].state == symbol
+                  if (x_pos < 6 && x_pos > 0)
+                x_pos -= 1
+              else
+                break
+              end
+              if (y_pos < 5 && y_pos > 0)
+                y_pos -= 1
+              else
+                break
+              end
 
-                    if direction == 'down' || direction == '' && slot.neighbors[:down] != nil && slot.neighbors[:down].state == slot.state
-                        puts slot.neighbors[:down]
-                        check_victory_rec(slot.neighbors[:down],counter+1, 'down')
-                    end
+              streak += 1
+              if streak >= 4
+                @is_victory = true
+                return true
+              end
+            end
 
-                    if direction == 'lowerleft' || direction == '' && slot.neighbors[:lowerleft] != nil && slot.neighbors[:lowerleft].state == slot.state
-                        puts slot.neighbors[:lowerleft]
-                        check_victory_rec(slot.neighbors[:lowerleft],counter+1, 'lowerleft')
-                    end
+            x_pos = x_index
+            y_pos = y_index
+            streak = 0
 
-                    if direction == 'lowerright' || direction == '' && slot.neighbors[:lowerright] != nil && slot.neighbors[:lowerright].state == slot.state
-                        puts slot.neighbors[:lowerright]
-                        check_victory_rec(slot.neighbors[:lowerright],counter+1, 'lowerright')
-                    end
+            while @our_board.slots[y_pos][x_pos].state == symbol
+                 if (x_pos < 6 && x_pos > 0)
+                x_pos += 1
+              else
+                break
+              end
+              if (y_pos < 5 && y_pos > 0)
+                y_pos -= 1
+              else
+                break
+              end
 
-                    if direction == 'right' || direction == '' && slot.neighbors[:right] != nil && slot.neighbors[:right].state == slot.state
-                        puts slot.neighbors[:right]
-                        check_victory_rec(slot.neighbors[:right],counter+1, 'right')
-                    end
-end
-        return nil
-    end
+              streak += 1
+              if streak >= 4
+                @is_victory = true
+                return true
+              end
+            end
 
-    def check_victory()
-        @our_board.slots.each do |row| 
-            row.each do |slot| 
-                if slot != nil && slot.state != 'O'
-                    temp = slot
-                    counter = 0
+            x_pos = x_index
+            y_pos = y_index
 
-                    puts slot
-                    
-                    while temp.neighbors[:up] != nil && temp.neighbors[:up].state == temp.state 
-                        puts "#{temp.neighbors[:up]}, state: #{temp.neighbors[:up]}"
-                        puts temp.neighbors[:up]
-                                               puts temp
-                       
-                        temp = temp.neighbors[:up]
-                                               puts temp
- 
-                        counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
+            while @our_board.slots[y_pos][x_pos].state == symbol
+               if (x_pos < 6 && x_pos > 0)
+                x_pos -= 1
+              else
+                break
+              end
+              if (y_pos < 5 && y_pos > 0)
+                y_pos += 1
+              else
+                break
+              end
 
-                    while temp.neighbors[:upperright] != nil && temp.neighbors[:upperright].state == temp.state 
-                        puts "#{temp.neighbors[:upperright]}, state: #{temp.neighbors[:upperright]}"
-                        
-
-                                               puts temp
-                        temp = temp.neighbors[:upperright]
-                                                   puts temp       
-                                                    counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
-
-                    while temp.neighbors[:upperleft] != nil && temp.neighbors[:upperleft].state == temp.state 
-                        puts "#{temp.neighbors[:upperleft]}, state: #{temp.neighbors[:upperleft]}"
-                        
-                                               puts temp                        
-                                               temp = temp.neighbors[:upperleft]                                       
-                                                   puts temp             
-                                                              counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
-
-                    while temp.neighbors[:left] != nil && temp.neighbors[:left].state == temp.state 
-                        puts "#{temp.neighbors[:left]}, state: #{temp.neighbors[:left]}"
-                        
-                                               puts temp                        
-                                               temp = temp.neighbors[:left]
-                                                   puts temp                       
-                                                    counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
-
-                    while temp.neighbors[:lowerleft] != nil && temp.neighbors[:lowerleft].state == temp.state 
-                        puts "#{temp.neighbors[:lowerleft]}, state: #{temp.neighbors[:lowerleft]}"
-                        
-                                               puts temp                       
-                                                temp = temp.neighbors[:lowerleft]
-                                                   puts temp                       
-                                                    counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
-
-                    while temp.neighbors[:down] != nil && temp.neighbors[:down].state == temp.state 
-                        puts "#{temp.neighbors[:down]}, state: #{temp.neighbors[:down]}"
-                        
-                                               puts temp                      
-                                                 temp = temp.neighbors[:down]
-                                                   puts temp                       
-                                                    counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
-
-                    while temp.neighbors[:lowerright] != nil && temp.neighbors[:lowerright].state == temp.state 
-                        puts "#{temp.neighbors[:lowerright]}, state: #{temp.neighbors[:lowerright]}"
-                        
-                                               puts temp                        
-                                               temp = temp.neighbors[:lowerright]
-                                                   puts temp                      
-                                                     counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
-
-                    while temp.neighbors[:right] != nil && temp.neighbors[:right].state == temp.state 
-                        puts "#{temp.neighbors[:right]}, state: #{temp.neighbors[:right]}"
-                        
-                                               puts temp                        
-                                               temp = temp.neighbors[:right]
-                                                   puts temp                       
-                                                    counter += 1
-                        return true if counter >= 4
-                    end
-                    counter = 0
-                    temp = slot
+              streak += 1
+              if streak >= 4
+                @is_victory = true
+                return true
+              end
+            end
 
           
-                end
-            end
-           end
-           return false
+          end
+        end
+
+      end
+
+     end
+
     end
-end
+
+
 

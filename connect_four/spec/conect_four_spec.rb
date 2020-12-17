@@ -4,24 +4,20 @@ describe Board do
     describe "drop_piece" do
         it "pieces can be placed on board" do
             board= Board.new()
-            expect(board.drop_piece(1,'blue')).to eql('blue')
+            expect(board.drop_piece(1,'blue').state).to eql('blue')
         end
     end
 end
 
 describe PlayGame do
     new_game = PlayGame.new
-    for i in 1..8
-        new_game.play_turn
-    end
+    new_game.start_game()
 
     describe "check_victory" do
         it "can we return false" do
             expect(new_game.is_victory).to eql(false)
         end
-    end
-    
-    
+    end 
     
     
     describe "check_victory" do
